@@ -12,6 +12,7 @@
 
 #include "MFCApplication1Doc.h"
 #include "MFCApplication1View.h"
+#include "MyDrawer.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -32,7 +33,7 @@ enum FillType
 DrawingState drawState = DRAW;
 FillType fillType = SOLID;
 
-
+MyDrawer* drawer;
 
 IMPLEMENT_DYNCREATE(CMFCApplication1View, CView)
 
@@ -68,6 +69,7 @@ CMFCApplication1View::CMFCApplication1View() noexcept
 	m_cursor = AfxGetApp()->LoadStandardCursor(IDC_CROSS);
 	SetCursor(m_cursor);
 	drawType = LINE;
+
 }
 
 CMFCApplication1View::~CMFCApplication1View()
@@ -264,6 +266,7 @@ void CMFCApplication1View::OnRButtonDown(UINT nFlags, CPoint point)
 void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	CClientDC dc(this);
 	switch (nChar)
 	{
 	case 'L':drawType = LINE; break;
@@ -271,9 +274,12 @@ void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case 'E':drawType = ELLIPSE; break;
 	case 'R':drawType = RECTANGLE; break;
 
+	case 'T':
+		drawer = new MyDrawer(dc, RGB(0, 0, 0));
+		drawer->drawLine_DDA(100,100,200,400);
 	default:
 
-		CClientDC dc(this);
+
 		dc.SetROP2(R2_NOT);
 		if (drawType == LINE) {
 			dc.MoveTo(startPoint);
