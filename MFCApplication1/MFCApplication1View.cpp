@@ -12,7 +12,7 @@
 
 #include "MFCApplication1Doc.h"
 #include "MFCApplication1View.h"
-#include "MyDrawer.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -33,7 +33,6 @@ enum FillType
 DrawingState drawState = DRAW;
 FillType fillType = SOLID;
 
-MyDrawer* drawer;
 
 IMPLEMENT_DYNCREATE(CMFCApplication1View, CView)
 
@@ -80,7 +79,6 @@ BOOL CMFCApplication1View::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: 在此处通过修改
 	//  CREATESTRUCT cs 来修改窗口类或样式
-
 	return CView::PreCreateWindow(cs);
 }
 
@@ -171,16 +169,19 @@ void CMFCApplication1View::OnMouseMove(UINT nFlags, CPoint point)
 	if (lpress) {
 		dc.SetROP2(R2_NOT);
 		if (drawType == LINE) {
-			dc.MoveTo(startPoint);
-			dc.LineTo(endPoint);
-
-
-			dc.MoveTo(startPoint);
-			dc.LineTo(point);
-
+			getDraw(dc)->drawLine_Mid(startPoint, endPoint);
+			getDraw(dc)->drawLine_Mid(startPoint, point);
 			endPoint = point;
 		}
 		else if (drawType == ELLIPSE) {
+			int x = startPoint.x;
+			int y = startPoint.y;
+			int r = sqrt((endPoint.x - x) * (endPoint.x - x) + (endPoint.y - y) * (endPoint.y - y));
+			getDraw(dc)->drawCircle_Mid(x, y, r);
+
+			r = sqrt((point.x - x) * (point.x - x) + (point.y - y) * (point.y - y));
+			getDraw(dc)->drawCircle_Mid(x, y, r);
+			/*
 			dc.Arc((int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y,
 				(int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y);
 			dc.Arc((int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y,
@@ -191,6 +192,7 @@ void CMFCApplication1View::OnMouseMove(UINT nFlags, CPoint point)
 				(int)startPoint.x, (int)startPoint.y,(int)point.x, (int)point.y);
 			dc.Arc((int)startPoint.x, (int)startPoint.y, (int)point.x, (int)point.y,
 				(int)point.x, (int)point.y, (int)startPoint.x, (int)startPoint.y);
+			*/
 			endPoint = point;
 		}
 		else if (drawType == RECTANGLE) {
@@ -275,20 +277,17 @@ void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case 'R':drawType = RECTANGLE; break;
 
 	case 'T':
-		drawer = new MyDrawer(dc, RGB(0, 0, 0));
-		drawer->drawLine_DDA(100,100,200,400);
+		getDraw(dc)->drawLine_DDA(100,100,200,400);
 	default:
-
 
 		dc.SetROP2(R2_NOT);
 		if (drawType == LINE) {
-			dc.MoveTo(startPoint);
-			dc.LineTo(endPoint);
+			getDraw(dc)->drawLine_DDA(startPoint, endPoint);
 		}else if (drawType == ELLIPSE) {
-			dc.Arc((int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y,
-				(int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y);
-			dc.Arc((int)startPoint.x, (int)startPoint.y, (int)endPoint.x, (int)endPoint.y,
-				(int)endPoint.x, (int)endPoint.y, (int)startPoint.x, (int)startPoint.y);
+			int x = startPoint.x;
+			int y = startPoint.y;
+			int r = sqrt((endPoint.x - x) * (endPoint.x - x) + (endPoint.y - y) * (endPoint.y - y));
+			getDraw(dc)->drawCircle_Mid(x, y, r);
 		}
 		else if (drawType == RECTANGLE) {
 			dc.MoveTo(startPoint);
@@ -381,4 +380,10 @@ void CMFCApplication1View::OnBitmap()
 	fillType = FILL_BITMAP;
 	drawState = FILL;
 
+}
+
+MyDrawer* CMFCApplication1View::getDraw(HDC dc) {
+	if (drawer == nullptr) drawer = new MyDrawer(dc, RGB(0, 0, 0));
+	else drawer->setDC(dc);
+	return drawer;
 }

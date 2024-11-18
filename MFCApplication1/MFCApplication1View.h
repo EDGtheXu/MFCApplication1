@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "MyDrawer.h"
 
 class CMFCApplication1View : public CView
 {
@@ -58,6 +58,9 @@ public:
 	afx_msg void OnNone();
 	afx_msg void OnShadow();
 	afx_msg void OnBitmap();
+
+	MyDrawer* getDraw(HDC dc);
+	MyDrawer* drawer = nullptr;
 };
 
 
