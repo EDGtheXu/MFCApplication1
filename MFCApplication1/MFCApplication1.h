@@ -38,10 +38,4 @@ public:
 };
 
 
-enum DrawType {
-	NONE, LINE, RECTANGLE, CIRCLE, ELLIPSE
-};
-extern HCURSOR m_cursor;
-extern DrawType drawType;
-
 extern CMFCApplication1App theApp;

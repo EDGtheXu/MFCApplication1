@@ -16,8 +16,7 @@
 #define new DEBUG_NEW
 #endif
 
-HCURSOR m_cursor;
-DrawType drawType = LINE;
+
 // CMFCApplication1App
 
 BEGIN_MESSAGE_MAP(CMFCApplication1App, CWinAppEx)
@@ -230,7 +229,7 @@ void CMFCApplication1App::SaveCustomState()
 void CAboutDlg::OnSolid()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = LINE;
+
 }
 
 

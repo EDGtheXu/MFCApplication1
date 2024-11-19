@@ -22,16 +22,6 @@ using namespace std;
 
 
 // CMFCApplication1View
-enum DrawingState {
-	DRAW, FILL
-};
-
-enum FillType
-{
-	SOLID, SHADOW, FILL_BITMAP
-};
-DrawingState drawState = DRAW;
-FillType fillType = SOLID;
 
 
 IMPLEMENT_DYNCREATE(CMFCApplication1View, CView)
@@ -67,7 +57,10 @@ CMFCApplication1View::CMFCApplication1View() noexcept
 	// TODO: 在此处添加构造代码
 	m_cursor = AfxGetApp()->LoadStandardCursor(IDC_CROSS);
 	SetCursor(m_cursor);
-	drawType = LINE;
+
+	drawState = DrawingState::DRAW;
+	drawType = DrawType::LINE;
+	fillType = FillType::SOLID;
 
 }
 
@@ -155,11 +148,15 @@ CMFCApplication1Doc* CMFCApplication1View::GetDocument() const // 非调试版�
 }
 #endif //_DEBUG
 
+int distance(CPoint a,CPoint b) {
+	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+}
 
 // CMFCApplication1View 消息处理程序
 CPoint startPoint;
 CPoint endPoint;
 bool lpress = false;
+
 
 void CMFCApplication1View::OnMouseMove(UINT nFlags, CPoint point)
 {
@@ -167,16 +164,36 @@ void CMFCApplication1View::OnMouseMove(UINT nFlags, CPoint point)
 	SetCursor(m_cursor);
 	CClientDC dc(this);
 	if (lpress) {
-		dc.SetROP2(R2_NOT);
-		if (drawType == LINE) {
+
+		/*
+		CBitmap bmp;
+		bmp.LoadBitmap(IDB_MENU_IMAGES_24);
+		CWindowDC dcDesktop(NULL);
+		CDC dcTmp;
+		dcTmp.CreateCompatibleDC(&dcDesktop);
+		CBitmap* pOldBmp = dcTmp.SelectObject(&bmp);
+		int x = endPoint.x;
+		int y = endPoint.y;
+
+		for (int i = 0;i < 50; i++) {
+			for (int j = 0;j < 50;j++) {
+				COLORREF cr = dcTmp.GetPixel((x+i)%140, (y+j)%30);
+				SetPixel(dc, x+i, y+j, cr);
+			}
+		}
+		*/
+
+		if (drawType == DrawType::LINE) {
+			dc.SetROP2(R2_NOT);
 			getDraw(dc)->drawLine_Mid(startPoint, endPoint);
 			getDraw(dc)->drawLine_Mid(startPoint, point);
 			endPoint = point;
 		}
-		else if (drawType == ELLIPSE) {
+		else if (drawType == DrawType::CIRCLE) {
+			dc.SetROP2(R2_NOT);
 			int x = startPoint.x;
 			int y = startPoint.y;
-			int r = sqrt((endPoint.x - x) * (endPoint.x - x) + (endPoint.y - y) * (endPoint.y - y));
+			int r = distance(endPoint, startPoint);
 			getDraw(dc)->drawCircle_Mid(x, y, r);
 
 			r = sqrt((point.x - x) * (point.x - x) + (point.y - y) * (point.y - y));
@@ -195,7 +212,35 @@ void CMFCApplication1View::OnMouseMove(UINT nFlags, CPoint point)
 			*/
 			endPoint = point;
 		}
-		else if (drawType == RECTANGLE) {
+		else if (drawType == DrawType::ELLIPSE) {
+			if (pointArr.size() ==1) {
+				dc.SetROP2(R2_NOT);
+				getDraw(dc)->drawLine_Mid(startPoint, endPoint);
+				getDraw(dc)->drawLine_Mid(startPoint, point);
+				endPoint = point;
+			}
+			else if (pointArr.size() == 2) {
+				
+				getDraw(dc)->drawLine_Mid(pointArr.at(0), startPoint);
+				dc.SetROP2(R2_NOT);
+				getDraw(dc)->drawLine_Mid(pointArr.at(0), endPoint);
+				getDraw(dc)->drawLine_Mid(pointArr.at(0), point);
+
+				int a = distance(pointArr.at(0), startPoint);
+				int b = distance(pointArr.at(0), endPoint);
+				getDraw(dc)->drawEllipse_Mid(pointArr.at(0).x, pointArr.at(0).y, a, b);
+
+				b = distance(pointArr.at(0), point);
+				getDraw(dc)->drawEllipse_Mid(pointArr.at(0).x, pointArr.at(0).y, a, b);
+
+				endPoint = point;
+
+				
+			}
+
+		}
+		else if (drawType == DrawType::RECTANGLE) {
+			dc.SetROP2(R2_NOT);
 			dc.MoveTo(startPoint);
 			dc.LineTo(startPoint.x, endPoint.y);
 			dc.LineTo(endPoint);
@@ -232,6 +277,19 @@ void CMFCApplication1View::OnLButtonDown(UINT nFlags, CPoint point)
 	lpress = true;
 	pointArr.push_back(point);
 
+	CClientDC dc(this);
+
+	if (drawType == DrawType::ELLIPSE ) {
+		if (pointArr.size() == 2) {
+			int a = distance(pointArr.at(0), startPoint);
+			int b = distance(pointArr.at(0), endPoint);
+			getDraw(dc)->drawEllipse_Mid(pointArr.at(0).x, pointArr.at(0).y, a, b);
+
+		}
+		else if(pointArr.size() == 3)
+			pointArr.clear();
+	}
+
 
 	CView::OnLButtonDown(nFlags, point);
 }
@@ -244,7 +302,7 @@ void CMFCApplication1View::OnLButtonUp(UINT nFlags, CPoint point)
 
 	/*
 	CClientDC dc(this);
-	if (drawType == LINE) {
+	if (drawType == DrawType::LINE) {
 		dc.MoveTo(startPoint);
 		dc.LineTo(endPoint);
 	}
@@ -271,25 +329,39 @@ void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	CClientDC dc(this);
 	switch (nChar)
 	{
-	case 'L':drawType = LINE; break;
-	case 'C':drawType = CIRCLE; break;
-	case 'E':drawType = ELLIPSE; break;
-	case 'R':drawType = RECTANGLE; break;
+	case 'L':drawType = DrawType::LINE; break;
+	case 'C':drawType = DrawType::CIRCLE; break;
+	case 'E':drawType = DrawType::ELLIPSE; break;
+	case 'R':drawType = DrawType::RECTANGLE; break;
 
+	case 'F':
+	{
+		//getDraw(dc)->fillSolid(pointArr, RGB(255, 50, 50));
+		if (pointArr.empty()) break;
+		if (fillType == FillType::SOLID)
+			getDraw(dc)->fillSolid(pointArr, RGB(0, 255, 0));
+		else if(fillType == FillType::FILL_BITMAP)
+			getDraw(dc)->fillBmp(pointArr);
+		break;
+	}
 	case 'T':
 		getDraw(dc)->drawLine_DDA(100,100,200,400);
+		break;
 	default:
 
 		dc.SetROP2(R2_NOT);
-		if (drawType == LINE) {
+		if (drawType == DrawType::LINE) {
 			getDraw(dc)->drawLine_DDA(startPoint, endPoint);
-		}else if (drawType == ELLIPSE) {
+		}else if (drawType == DrawType::ELLIPSE) {
+
+		}
+		else if (drawType == DrawType::CIRCLE) {
 			int x = startPoint.x;
 			int y = startPoint.y;
 			int r = sqrt((endPoint.x - x) * (endPoint.x - x) + (endPoint.y - y) * (endPoint.y - y));
 			getDraw(dc)->drawCircle_Mid(x, y, r);
 		}
-		else if (drawType == RECTANGLE) {
+		else if (drawType == DrawType::RECTANGLE) {
 			dc.MoveTo(startPoint);
 			dc.LineTo(startPoint.x, endPoint.y);
 			dc.LineTo(endPoint);
@@ -298,7 +370,7 @@ void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		}
 
 		lpress = false;
-		drawType = NONE;
+		drawType = DrawType::NONE;
 		pointArr.clear();
 		break;
 	}
@@ -312,11 +384,14 @@ void CMFCApplication1View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 
 
+
+
+
 void CMFCApplication1View::OnLine()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = LINE;
-	drawState = DRAW;
+	drawType = DrawType::LINE;
+	drawState = DrawingState::DRAW;
 
 }
 
@@ -324,8 +399,8 @@ void CMFCApplication1View::OnLine()
 void CMFCApplication1View::OnCircle()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = CIRCLE;
-	drawState = DRAW;
+	drawType = DrawType::CIRCLE;
+	drawState = DrawingState::DRAW;
 
 }
 
@@ -333,8 +408,8 @@ void CMFCApplication1View::OnCircle()
 void CMFCApplication1View::OnEllisep()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = ELLIPSE;
-	drawState = DRAW;
+	drawType = DrawType::ELLIPSE;
+	drawState = DrawingState::DRAW;
 
 }
 
@@ -342,8 +417,8 @@ void CMFCApplication1View::OnEllisep()
 void CMFCApplication1View::OnRectangle()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = RECTANGLE;
-	drawState = DRAW;
+	drawType = DrawType::RECTANGLE;
+	drawState = DrawingState::DRAW;
 
 }
 
@@ -351,8 +426,8 @@ void CMFCApplication1View::OnRectangle()
 void CMFCApplication1View::OnNone()
 {
 	// TODO: 在此添加命令处理程序代码
-	drawType = NONE;
-	drawState = DRAW;
+	drawType = DrawType::NONE;
+	drawState = DrawingState::DRAW;
 }
 
 
@@ -361,15 +436,15 @@ void CMFCApplication1View::OnNone()
 void CMFCApplication1View::OnSolid()
 {
 	// TODO: 在此添加命令处理程序代码
-	fillType = SOLID;
-	drawState = FILL;
+	fillType = FillType::SOLID;
+	drawState = DrawingState::FILL;
 }
 
 void CMFCApplication1View::OnShadow()
 {
 	// TODO: 在此添加命令处理程序代码
-	fillType = SHADOW;
-	drawState = FILL;
+	fillType = FillType::SHADOW;
+	drawState = DrawingState::FILL;
 
 }
 
@@ -377,8 +452,8 @@ void CMFCApplication1View::OnShadow()
 void CMFCApplication1View::OnBitmap()
 {
 	// TODO: 在此添加命令处理程序代码
-	fillType = FILL_BITMAP;
-	drawState = FILL;
+	fillType = FillType::FILL_BITMAP;
+	drawState = DrawingState::FILL;
 
 }
 

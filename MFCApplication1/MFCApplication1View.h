@@ -5,6 +5,16 @@
 #pragma once
 #include "MyDrawer.h"
 
+enum class DrawingState {
+	DRAW, FILL
+};
+enum class DrawType {
+	NONE, LINE, RECTANGLE, CIRCLE, ELLIPSE
+};
+enum class FillType {
+	SOLID, SHADOW, FILL_BITMAP
+};
+
 class CMFCApplication1View : public CView
 {
 protected: // 仅从序列化创建
@@ -61,7 +71,17 @@ public:
 
 	MyDrawer* getDraw(HDC dc);
 	MyDrawer* drawer = nullptr;
+
+	HCURSOR m_cursor;
+	DrawingState drawState;
+	DrawType drawType;
+	FillType fillType;
 };
+
+
+
+
+
 
 
 #ifndef _DEBUG  // MFCApplication1View.cpp 中的调试版本
