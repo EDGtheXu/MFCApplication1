@@ -13,6 +13,7 @@
 #include "MFCApplication2Doc.h"
 #include "MFCApplication2View.h"
 #include <vector>
+#include "Cube.h"
 using namespace std;
 
 #ifdef _DEBUG
@@ -52,6 +53,10 @@ bool lpress = false;
 int distance(CPoint a, CPoint b) {
 	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
+
+Cube cube1("cube1",Vec3(100,100,0),40);
+Matrix proj(4, 4);
+Matrix view(4, 4);
 
 CMFCApplication2View::CMFCApplication2View() noexcept
 {
@@ -212,7 +217,42 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case 'C':drawType = DrawType::CIRCLE; break;
 	case 'E':drawType = DrawType::ELLIPSE; break;
 	case 'R':drawType = DrawType::RECTANGLE; break;
+	case 'W':
+	{
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.translate(0, 10, 0);
+		cube1.render(getDraw(dc), &proj, &view);
+		break;
 
+	}
+	case 'S':
+	{
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.translate(0, -10, 0);
+		cube1.render(getDraw(dc), &proj, &view);
+		break;
+
+	}
+	case 'A':
+	{
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.translate(-10, 0, 0);
+		cube1.render(getDraw(dc), &proj, &view);
+		break;
+
+	}
+	case 'D':
+	{
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.translate(10, 0, 0);
+		cube1.render(getDraw(dc), &proj, &view);
+		break;
+
+	}
 	case 'F':
 	{
 		//getDraw(dc)->fillSolid(pointArr, RGB(255, 50, 50));
@@ -223,9 +263,24 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			getDraw(dc)->fillBmp(pointArr, IDB_MY_NUMBER);
 		break;
 	}
-	case 'T':
-		getDraw(dc)->drawLine_DDA(100, 100, 200, 400);
+	case 'Y':
+	{
+		
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.setYRot(cube1.getYRot() + 10);
+		cube1.render(getDraw(dc), &proj, &view);
 		break;
+	}
+	case 'X':
+	{
+
+		dc.SetROP2(R2_NOT);
+		cube1.render(getDraw(dc), &proj, &view);
+		cube1.setXRot(cube1.getXRot() + 10);
+		cube1.render(getDraw(dc), &proj, &view);
+		break;
+	}
 	default:
 
 		dc.SetROP2(R2_NOT);
