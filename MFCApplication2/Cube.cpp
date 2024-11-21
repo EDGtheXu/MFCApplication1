@@ -34,8 +34,10 @@ void Cube::render(MyDrawer* drawer, Matrix* proj, Matrix* view) {
 	for (int i = 0;i < 12;i++) {
 		Matrix model(4, 4);
 		Matrix view1(4, 4);
-		model.rotateY(this->yaw);
+		// TODO 旋转x会改变y
 		model.rotateX(this->pitch);
+		model.rotateY(this->yaw);
+		
 		view1 = *view * view1.translate(position);
 		lines[i].render(drawer,&model, proj, &view1);
 	}

@@ -71,6 +71,8 @@ public:
 	afx_msg void OnFillSolid();
 	afx_msg void OnFillBmp();
 	afx_msg void OnCreateCube();
+	afx_msg void OnProjType1();
+	afx_msg void OnProjType2();
 };
 
 #ifndef _DEBUG  // MFCApplication2View.cpp 中的调试版本

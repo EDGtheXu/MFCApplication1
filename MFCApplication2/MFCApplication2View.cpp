@@ -41,6 +41,8 @@ BEGIN_MESSAGE_MAP(CMFCApplication2View, CView)
 	ON_COMMAND(ID_32771, &CMFCApplication2View::OnFillSolid)
 	ON_COMMAND(ID_32772, &CMFCApplication2View::OnFillBmp)
 	ON_COMMAND(ID_CREATE_CUBE, &CMFCApplication2View::OnCreateCube)
+	ON_COMMAND(ID_PROJ_TYPE1, &CMFCApplication2View::OnProjType1)
+	ON_COMMAND(ID_PROJ_TYPE2, &CMFCApplication2View::OnProjType2)
 END_MESSAGE_MAP()
 
 // CMFCApplication2View 构造/析构
@@ -68,7 +70,7 @@ CMFCApplication2View::CMFCApplication2View() noexcept
 	drawType = DrawType::LINE;
 	fillType = FillType::FILL_BITMAP;
 
-
+	
 }
 
 CMFCApplication2View::~CMFCApplication2View()
@@ -269,6 +271,8 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		dc.SetROP2(R2_NOT);
 		cube1.render(getDraw(dc), &proj, &view);
 		cube1.setYRot(cube1.getYRot() + 10);
+		proj.set(2, 2, 0);
+
 		cube1.render(getDraw(dc), &proj, &view);
 		break;
 	}
@@ -417,5 +421,29 @@ void CMFCApplication2View::OnCreateCube()
 {
 	// TODO: 在此添加命令处理程序代码
 
+
+}
+
+
+void CMFCApplication2View::OnProjType1()
+{
+	// TODO: 在此添加命令处理程序代码
+	proj = Matrix(4, 4);
+	proj.set(2, 2, 0);
+}
+
+
+void CMFCApplication2View::OnProjType2()
+{
+	// TODO: 在此添加命令处理程序代码
+	CClientDC dc(this);
+	dc.SetROP2(R2_NOT);
+	cube1.render(getDraw(dc), &proj, &view);
+	float d = 150;
+	//proj.set(2,0,cube1.position.x / d);
+	//proj.set(2,1,cube1.position.y / d);
+	proj.set(2, 2, 0);
+	proj.set(2, 3, 1 / d);
+	cube1.render(getDraw(dc), &proj, &view);
 
 }
