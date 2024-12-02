@@ -9,24 +9,12 @@ public:
 	float x;
 	float y;
 	float z;
-
 	Vec3(Vec3* v) { this->x = v->x;this->y = v->y, this->z = v->z; }
 	Vec3(float x, float y, float z) :x(x), y(y), z(z) {}
 	Vec3() :x(0), y(0), z(0) {}
-	Vec3& add(float x, float y, float z) {
-		this->x += x;this->y += y;this->z += z;
-		return *this;
-	}
-	Vec3& sub(float x, float y, float z) {
-		this->x -= x;this->y -= y;this->z -= z;
-		return *this;
-	}
-	Vec3& scale(float s) {
-		this->x *= s;this->y *= s;this->z *= s;
-		return *this;
-	}
-
-
+	Vec3& add(float x, float y, float z) {this->x += x;this->y += y;this->z += z; return *this;}
+	Vec3& sub(float x, float y, float z) {this->x -= x;this->y -= y;this->z -= z; return *this;}
+	Vec3& scale(float s) {this->x *= s;this->y *= s;this->z *= s; return *this;}
 };
 
 class Matrix {
@@ -37,22 +25,10 @@ public:
 	int col;
 	double get(int row, int col) const {return arr[row][col];}
 	double set(int row, int col, double val) { return arr[row][col] = val; }
-	Matrix& translate(Vec3 v) {
-		arr[3][0] += v.x;arr[3][1] += v.y;arr[3][2] += v.z;
-		return *this;
-	}
-	Matrix& translate(double x, double y, double z) {
-		arr[3][0] += x;arr[3][1] += y;arr[3][2] += z;
-		return *this;
-	}
-	Matrix& scale(double x, double y, double z) {
-		arr[0][0] *= x;arr[1][1] *= y;arr[2][2] *= z;
-		return *this;
-	}
-	Matrix& scale(double x) {
-		this->scale(x, x, x);
-		return *this;
-	}
+	Matrix& translate(Vec3 v) { arr[3][0] += v.x;arr[3][1] += v.y;arr[3][2] += v.z;return *this;}
+	Matrix& translate(double x, double y, double z) { arr[3][0] += x;arr[3][1] += y;arr[3][2] += z; return *this;}
+	Matrix& scale(double x, double y, double z) { arr[0][0] *= x;arr[1][1] *= y;arr[2][2] *= z;return *this;}
+	Matrix& scale(double x) {this->scale(x, x, x); return *this;}
 	Matrix& rotateX(double degree);
 	Matrix& rotateY(double degree);
 	Matrix& rotateZ(double degree);
@@ -61,23 +37,13 @@ public:
 	Vec3 operator*(const Vec3& vec) const;
 	Matrix operator()(int excludeRow, int excludeCol) const;
 	Matrix& operator=(const Matrix& other);
-
-	// 计算行列式
-	double determinant() const;
-	// 获取子矩阵
-	Matrix subMatrix(int excludeRow, int excludeCol) const;
-	// 计算代数余子式
-	double cofactor(int row, int col) const;
-	// 计算伴随矩阵
-	Matrix adjugateMatrix() const;
-	// 矩阵转置
-	Matrix transpose() const;
-	// 求逆矩阵
-	Matrix inverse() const;
-
-	Matrix(int row=4,int col=4):row(row),col(col){
-		arr[0][0] = arr[1][1] = arr[2][2] = arr[3][3] = 1;
-	}
+	double determinant() const;// 计算行列式
+	Matrix subMatrix(int excludeRow, int excludeCol) const;// 获取子矩阵
+	double cofactor(int row, int col) const;// 计算代数余子式
+	Matrix adjugateMatrix() const;// 计算伴随矩阵
+	Matrix transpose() const;// 矩阵转置
+	Matrix inverse() const;// 求逆矩阵
+	Matrix(int row=4,int col=4):row(row),col(col){arr[0][0] = arr[1][1] = arr[2][2] = arr[3][3] = 1;}
 };
 
 
@@ -88,15 +54,8 @@ public:
 	Vec3 end;
 	Line(Vec3 s, Vec3 e) :start(s), end(e) {}
 	Line() :start(Vec3()), end(Vec3()) {}
-	void translate(float x, float y, float z) {
-		start.add(x, y, z);
-		end.add(x, y, z);
-	}
-	Line& set(float x1, float y1, float z1, float x2, float y2, float z2) {
-		start.x = x1;start.y = y1;start.z = z1;
-		end.x = x2;end.y = y2;end.z = z2;
-		return *this;
-	}
+	void translate(float x, float y, float z) {start.add(x, y, z); end.add(x, y, z);}
+	Line& set(float x1, float y1, float z1, float x2, float y2, float z2);
 	void render(MyDrawer* drawer, Matrix* model, Matrix* proj, Matrix* view);
 };
 
@@ -111,16 +70,8 @@ public:
 	float maxy;
 	float maxz;
 	float _size = 1;
-	AABB(float size = 1) {
-		_size = size;
-		minx = miny = minz = -size;
-		maxx = maxy = maxz = size;
-	}
-	void scale(float s) {
-		float t = _size * s;
-		minx = miny = minz = -t;
-		maxx = maxy = maxz = t;
-	}
+	AABB(float size);
+	void scale(float s);
 };
 
 class Cube
@@ -137,9 +88,9 @@ public:
 
 	Cube(string name,Vec3 pos, float size=1):size(size),aabb(size),position(pos),anchor(size, size, size),name(name) {}
 	void translate(float x,float y,float z) {this->position.add(x, y, z);}
-	void setYRot(float yaw);
-	void setXRot(float pitch);
-	void setZRot(float roll);
+	void RotX(float pitch);
+	void RotY(float yaw);
+	void RotZ(float roll);
 	void render(MyDrawer* drawer,  Matrix* proj, Matrix* view);
 };
 

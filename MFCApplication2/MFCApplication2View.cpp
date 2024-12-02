@@ -56,20 +56,16 @@ vector<CPoint> pointArr;
 vector<CPoint> clipPointArr;
 CPoint startPoint;
 CPoint endPoint;
-
 CPoint clip1, clip2;
+Cube* cube1;
+Matrix proj(4, 4);
+Matrix view(4, 4);
+
 bool lpress = false;
 
 int distance(CPoint a, CPoint b) {
 	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
-
-
-Cube* cube1;
-Matrix proj(4, 4);
-Matrix view(4, 4);
-
-
 
 CMFCApplication2View::CMFCApplication2View() noexcept
 {
@@ -80,8 +76,6 @@ CMFCApplication2View::CMFCApplication2View() noexcept
 	drawState = DrawingState::DRAW;
 	drawType = DrawType::LINE;
 	fillType = FillType::FILL_BITMAP;
-
-	
 }
 
 CMFCApplication2View::~CMFCApplication2View()
@@ -233,12 +227,10 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_DOWN:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(0, 10, 0);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
@@ -246,12 +238,10 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_UP:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(0, -10, 0);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
@@ -259,12 +249,10 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_LEFT:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(-10, 0, 0);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
@@ -272,12 +260,10 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_RIGHT:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(10, 0, 0);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
@@ -285,12 +271,10 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_NUMPAD0:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(0, 0, -10);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
@@ -298,48 +282,38 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case VK_NUMPAD1:
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
 		cube1->translate(0, 0, 10);
 		resetProj();
-
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
-	}
-
-	case 'Y':
-	{
-		if (cube1 == nullptr) return;
-
-		dc.SetROP2(R2_NOT);
-		cube1->render(getDraw(dc), &proj, &view);
-		cube1->setYRot(10);
-		proj.set(2, 2, 0);
-
-		cube1->render(getDraw(dc), &proj, &view);
-		break;
 	}
 	case 'X':
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
-		
-		cube1->setXRot(10);
+		cube1->RotX(10);
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
+	}
+	case 'Y':
+	{
+		if (cube1 == nullptr) return;
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->RotY(10);
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 	}
 	case 'Z':
 	{
 		if (cube1 == nullptr) return;
-
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
-
-		cube1->setZRot(10);
+		cube1->RotZ(10);
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 	}
@@ -491,8 +465,8 @@ void CMFCApplication2View::OnCreateCube()
 	// TODO: 在此添加命令处理程序代码
 	cube1 = new Cube("cube1", Vec3(200, 200, 0), 40);
 	CClientDC dc(this);
-	cube1->setYRot(30);
-	cube1->setXRot(30);
+	cube1->RotY(30);
+	cube1->RotX(30);
 	cube1->render(getDraw(dc), &proj, &view);
 
 }
@@ -502,22 +476,21 @@ void CMFCApplication2View::OnProjType1()
 {
 	// TODO: 在此添加命令处理程序代码
 	projType = ProjectionType::OBLIQUE;
-	resetProj();
+	//resetProj();
 }
 
 
 void CMFCApplication2View::OnProjType2()
 {
-	if (cube1 == nullptr) return;
 	projType = ProjectionType::PERSPECTIVE;
-	resetProj();
+	//resetProj();
 }
 
 void CMFCApplication2View::resetProj() {
 	proj = Matrix(4, 4);
 	CClientDC dc(this);
 	dc.SetROP2(R2_NOT);
-	cube1->render(getDraw(dc), &proj, &view);
+
 	float x0 = 0;
 	float y0 = 0;
 	float d = 150;
@@ -534,7 +507,6 @@ void CMFCApplication2View::resetProj() {
 	view.set(0, 0, d / (d - cube1->position.z));
 	view.set(1, 1, d / (d - cube1->position.z));
 
-	cube1->render(getDraw(dc), &proj, &view);
 }
 
 

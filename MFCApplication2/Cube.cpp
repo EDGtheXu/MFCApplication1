@@ -37,6 +37,19 @@ Matrix& Matrix::operator=(const Matrix& other) {
     return *this;
 }
 
+Matrix& Matrix::rotateX(double degree) {
+    Matrix* m = new Matrix(4, 4);
+    m->set(1, 1, cos(degree * 3.1415926 / 180));
+    m->set(1, 2, sin(degree * 3.1415926 / 180));
+    m->set(2, 1, -sin(degree * 3.1415926 / 180));
+    m->set(2, 2, cos(degree * 3.1415926 / 180));
+    Matrix* nm = this->mul(*m);
+    memcpy(arr, nm->arr, 16 * sizeof(double));
+    delete nm;
+    delete m;
+    return *this;
+}
+
 Matrix& Matrix::rotateY(double degree) {
     Matrix* m = new Matrix(4, 4);
     m->set(0, 0, cos(degree * 3.1415926 / 180));
@@ -157,6 +170,12 @@ inline Matrix Matrix::inverse() const {
 
 
 
+inline Line& Line::set(float x1, float y1, float z1, float x2, float y2, float z2) {
+    start.x = x1;start.y = y1;start.z = z1;
+    end.x = x2;end.y = y2;end.z = z2;
+    return *this;
+}
+
 void Line::render(MyDrawer* drawer, Matrix* model, Matrix* proj, Matrix* view) {
 	Matrix* m1 = new Matrix(4, 4);
 	m1->translate(start);
@@ -169,11 +188,13 @@ void Line::render(MyDrawer* drawer, Matrix* model, Matrix* proj, Matrix* view) {
 	drawer->drawLine_Mid(aclip.x, aclip.y, bclip.x, bclip.y);
 }
 
-void Cube::setYRot(float yaw) { this->model = Matrix().rotateY(yaw) * this->model; }
 
-void Cube::setXRot(float pitch) { this->model = Matrix().rotateX(pitch) * this->model; }
 
-void Cube::setZRot(float roll) { this->model = Matrix().rotateZ(roll) * this->model; }
+void Cube::RotY(float yaw) { this->model = Matrix().rotateY(yaw) * this->model; }
+
+void Cube::RotX(float pitch) { this->model = Matrix().rotateX(pitch) * this->model; }
+
+void Cube::RotZ(float roll) { this->model = Matrix().rotateZ(roll) * this->model; }
 
 void Cube::render(MyDrawer* drawer, Matrix* proj, Matrix* view) {
     Line lines[12];
@@ -203,15 +224,16 @@ void Cube::render(MyDrawer* drawer, Matrix* proj, Matrix* view) {
     }
 }
 
-Matrix& Matrix::rotateX(double degree) {
-    Matrix* m = new Matrix(4, 4);
-    m->set(1, 1, cos(degree * 3.1415926 / 180));
-    m->set(1, 2, sin(degree * 3.1415926 / 180));
-    m->set(2, 1, -sin(degree * 3.1415926 / 180));
-    m->set(2, 2, cos(degree * 3.1415926 / 180));
-    Matrix* nm = this->mul(*m);
-    memcpy(arr, nm->arr, 16 * sizeof(double));
-    delete nm;
-    delete m;
-    return *this;
+
+
+inline void AABB::scale(float s) {
+    float t = _size * s;
+    minx = miny = minz = -t;
+    maxx = maxy = maxz = t;
+}
+
+AABB::AABB(float size = 1) {
+    _size = size;
+    minx = miny = minz = -size;
+    maxx = maxy = maxz = size;
 }
