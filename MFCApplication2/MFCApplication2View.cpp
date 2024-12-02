@@ -45,6 +45,9 @@ BEGIN_MESSAGE_MAP(CMFCApplication2View, CView)
 	ON_COMMAND(ID_PROJ_TYPE2, &CMFCApplication2View::OnProjType2)
 	ON_COMMAND(ID_CLIP_CREATE, &CMFCApplication2View::OnClipCreate)
 	ON_COMMAND(ID_CLIP_LINES, &CMFCApplication2View::OnClipLines)
+	ON_COMMAND(ID_HERMITE, &CMFCApplication2View::OnHermite)
+	ON_COMMAND(ID_BEZIER3, &CMFCApplication2View::OnBezier3)
+	ON_COMMAND(ID_BSPLINE4, &CMFCApplication2View::OnBspline4)
 END_MESSAGE_MAP()
 
 // CMFCApplication2View 构造/析构
@@ -352,7 +355,7 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			int x = startPoint.x;
 			int y = startPoint.y;
 			int r = sqrt((endPoint.x - x) * (endPoint.x - x) + (endPoint.y - y) * (endPoint.y - y));
-			getDraw(dc)->drawCircle_Mid(x, y, r);
+			getDraw(dc)->drawCircle_Bresenham(x, y, r);
 		}
 		else if (drawType == DrawType::RECTANGLE) {
 			dc.MoveTo(startPoint);
@@ -381,7 +384,7 @@ void CMFCApplication2View::OnMouseMove(UINT nFlags, CPoint point)
 	CClientDC dc(this);
 	if (lpress) {
 
-		if (drawType == DrawType::LINE) {
+		if (drawType == DrawType::LINE || drawType == DrawType::CURVE) {
 			dc.SetROP2(R2_NOT);
 			getDraw(dc)->drawLine_Mid(startPoint, endPoint);
 			getDraw(dc)->drawLine_Mid(startPoint, point);
@@ -392,10 +395,10 @@ void CMFCApplication2View::OnMouseMove(UINT nFlags, CPoint point)
 			int x = startPoint.x;
 			int y = startPoint.y;
 			int r = distance(endPoint, startPoint);
-			getDraw(dc)->drawCircle_Mid(x, y, r);
+			getDraw(dc)->drawCircle_Bresenham(x, y, r);
 
 			r = sqrt((point.x - x) * (point.x - x) + (point.y - y) * (point.y - y));
-			getDraw(dc)->drawCircle_Mid(x, y, r);
+			getDraw(dc)->drawCircle_Bresenham(x, y, r);
 			endPoint = point;
 		}
 		else if (drawType == DrawType::ELLIPSE) {
@@ -568,4 +571,32 @@ void CMFCApplication2View::OnClipLines()
 
 
 	drawer.clip(pointArr, clip1,clip2);
+}
+
+
+void CMFCApplication2View::OnHermite()
+{
+	// TODO: 在此添加命令处理程序代码
+	drawType = DrawType::CURVE;
+	curveType = CurveType::HERMITE;
+	getDraw(CClientDC(this))->hermite(pointArr);
+
+}
+
+
+void CMFCApplication2View::OnBezier3()
+{
+	// TODO: 在此添加命令处理程序代码
+	drawType = DrawType::CURVE;
+    curveType = CurveType::BEZIER3;
+	getDraw(CClientDC(this))->bezier3(pointArr);
+}
+
+
+void CMFCApplication2View::OnBspline4()
+{
+	// TODO: 在此添加命令处理程序代码
+	drawType = DrawType::CURVE;
+    curveType = CurveType::BSPLINE4;
+	getDraw(CClientDC(this))->bspline4(pointArr);
 }

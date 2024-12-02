@@ -86,6 +86,36 @@ void MyDrawer::drawCircle_Mid(int x0, int y0, int r) {
 
 }
 
+void MyDrawer::drawCircle_Bresenham(int x0, int y0, int r)
+{
+	int x = r, y = 0;
+	int d = 3 - 2 * r;
+
+	while (x >= y)
+	{
+		// 绘制八分之一的圆
+		setPixel(x0 + x, y0 + y);
+		setPixel(x0 + y, y0 + x);
+		setPixel(x0 - y, y0 + x);
+		setPixel(x0 - x, y0 + y);
+		setPixel(x0 - x, y0 - y);
+		setPixel(x0 - y, y0 - x);
+		setPixel(x0 + y, y0 - x);
+		setPixel(x0 + x, y0 - y);
+
+		if (d < 0)
+		{
+			d = d + 4 * y + 6;
+		}
+		else
+		{
+			d = d + 4 * (y - x) + 10;
+			x--;
+		}
+		y++;
+	}
+}
+
 
 void MyDrawer::drawEllipse_Mid(int x0, int y0, int a, int b) {
 	int x = 0, y = b;
@@ -294,6 +324,7 @@ void MyDrawer::clip(vector<CPoint> points, int x0,int y0,int x3,int y3) {
 	COLORREF incolor = RGB(0,255,0);
 	COLORREF outcolor = RGB(0, 0, 255);
 
+
 	for (int i = 0; i < size; i++) {
 		CPoint* now = &points.at(i);
 		x2 = now->x;
@@ -372,4 +403,106 @@ void MyDrawer::clip(vector<CPoint> points, int x0,int y0,int x3,int y3) {
 	}
 
 	color = RGB(0, 0, 0);
+}
+
+void MyDrawer::hermite(std::vector<CPoint> points) {
+	if (points.size() < 2) {
+		return;
+	}
+
+	double lastx = points.at(0).x, lasty=points.at(0).y;
+	for (size_t i = 0; i < points.size() - 1; ++i) {
+		CPoint p0 = (i == 0) ? points[0] : points[i - 1];
+		CPoint p1 = points[i];
+		CPoint p2 = points[i + 1];
+		CPoint p3 = (i == points.size() - 2) ? points.back() : points[i + 2];
+
+		double x1 = p1.x;
+		double y1 = p1.y;
+		double x2 = p2.x;
+		double y2 = p2.y;
+
+		double t = 0.0;
+		while (t <= 1.0) {
+			double h1 = 2 * t * t * t - 3 * t * t + 1;
+			double h2 = -2 * t * t * t + 3 * t * t;
+			double h3 = t * t * t - 2 * t * t + t;
+			double h4 = t * t * t - t * t;
+
+			double x = h1 * x1 + h2 * x2 + h3 * (x2 - x1) + h4 * (p3.x - x2);
+			double y = h1 * y1 + h2 * y2 + h3 * (y2 - y1) + h4 * (p3.y - y2);
+
+			drawLine_Mid(lastx, lasty, x, y);
+
+			t += 0.01; 
+			lastx = x, lasty = y;
+		}
+	}
+}
+
+void MyDrawer::bezier3(std::vector<CPoint> points) {
+	if (points.size() < 4) {
+		return; 
+	}
+
+	double lastx = points.at(0).x, lasty = points.at(0).y;
+	for (size_t i = 0; i < points.size() - 3; i += 3) {
+		CPoint p0 = points[i];
+		CPoint p1 = points[i + 1];
+		CPoint p2 = points[i + 2];
+		CPoint p3 = points[i + 3];
+
+		double t = 0.0;
+		while (t <= 1.0) {
+			double u = 1 - t;
+			double tt = t * t;
+			double uu = u * u;
+			double uuu = uu * u;
+			double ttt = tt * t;
+
+			double x = uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x;
+			double y = uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y;
+
+			drawLine_Mid(lastx, lasty, x, y);
+
+			t += 0.01;
+			lastx = x, lasty = y;
+		}
+	}
+}
+
+void MyDrawer::bspline4(std::vector<CPoint> points) {
+	if (points.size() < 4) {
+		return; 
+	}
+
+	const double step = 0.01; 
+	double lastx = points.at(0).x, lasty = points.at(0).y;
+	for (size_t i = 0; i < points.size() - 3; i += 3) {
+		CPoint p0 = points[i];
+		CPoint p1 = points[i + 1];
+		CPoint p2 = points[i + 2];
+		CPoint p3 = points[i + 3];
+
+		for (double t = 0.0; t <= 1.0; t += step) {
+			double tt = t * t;
+			double ttt = tt * t;
+
+			// 三次B样条的基函数
+			double B0 = (1.0 - t) * (1.0 - t) * (1.0 - t);
+			double B1 = 3.0 * t * (1.0 - t) * (1.0 - t);
+			double B2 = 3.0 * t * t * (1.0 - t);
+			double B3 = t * t * t;
+
+			// 计算曲线上的点
+			double x = B0 * p0.x + B1 * p1.x + B2 * p2.x + B3 * p3.x;
+			double y = B0 * p0.y + B1 * p1.y + B2 * p2.y + B3 * p3.y;
+
+			drawLine_Mid(lastx, lasty, x, y);
+
+			lastx = x, lasty = y;
+		}
+
+	}
+
 }

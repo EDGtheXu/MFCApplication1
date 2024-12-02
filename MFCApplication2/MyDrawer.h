@@ -43,6 +43,7 @@ public:
 	void drawLine_Mid(CPoint st, CPoint en) { drawLine_Mid(st.x, st.y, en.x, en.y); }
 
 	void drawCircle_Mid(int x0, int y0, int r);
+	void drawCircle_Bresenham(int x0, int y0, int r);
 
 	void drawEllipse_Mid(int x0, int y0, int a, int b);
 
@@ -56,10 +57,13 @@ public:
 	void clip(vector<CPoint> points, int x0, int y0, int x3, int y3);
 	void clip(vector<CPoint> points, CPoint p1, CPoint p2) { clip(points,p1.x, p1.y, p2.x, p2.y); }
 
+	void hermite(vector<CPoint> points);
+	void bezier3(vector<CPoint> points);
+	void bspline4(vector<CPoint> points);
+
+
+
 private:
 	void fill(vector<CPoint> points, std::function<COLORREF(int, int)> setcolorRecall);
-
-
-	
 };
 

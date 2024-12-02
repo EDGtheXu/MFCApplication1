@@ -9,10 +9,13 @@ enum class DrawingState {
 	DRAW, FILL
 };
 enum class DrawType {
-	NONE, LINE, RECTANGLE, CIRCLE, ELLIPSE
+	NONE, LINE, RECTANGLE, CIRCLE, ELLIPSE, CURVE
 };
 enum class FillType {
 	SOLID, SHADOW, FILL_BITMAP
+};
+enum class CurveType {
+    NONE,HERMITE, BEZIER3, BSPLINE4
 };
 
 class CMFCApplication2View : public CView
@@ -68,6 +71,7 @@ public:
 	DrawingState drawState;
 	DrawType drawType;
 	FillType fillType;
+	CurveType curveType = CurveType::NONE;
 	afx_msg void OnFillSolid();
 	afx_msg void OnFillBmp();
 	afx_msg void OnCreateCube();
@@ -77,6 +81,9 @@ public:
 
 	void CMFCApplication2View::resetProj();
 	afx_msg void OnClipLines();
+	afx_msg void OnHermite();
+	afx_msg void OnBezier3();
+	afx_msg void OnBspline4();
 };
 
 #ifndef _DEBUG  // MFCApplication2View.cpp 中的调试版本
