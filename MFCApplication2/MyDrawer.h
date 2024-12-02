@@ -6,9 +6,9 @@
 using namespace std;
 
 typedef struct ET {
-	int ymax;
-	int xmin;
-	float m;
+	const int ymax;
+	const int xmin;
+	const float m;
 	ET* next;
 	ET(int ymax, int xmin, float m, ET* next) :ymax(ymax), xmin(xmin), m(m), next(next) {}
 };

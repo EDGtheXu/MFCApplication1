@@ -17,6 +17,9 @@ enum class FillType {
 enum class CurveType {
     NONE,HERMITE, BEZIER3, BSPLINE4
 };
+enum class ProjectionType {
+	OBLIQUE, PERSPECTIVE
+};
 
 class CMFCApplication2View : public CView
 {
@@ -72,6 +75,7 @@ public:
 	DrawType drawType;
 	FillType fillType;
 	CurveType curveType = CurveType::NONE;
+	ProjectionType projType = ProjectionType::OBLIQUE;
 	afx_msg void OnFillSolid();
 	afx_msg void OnFillBmp();
 	afx_msg void OnCreateCube();

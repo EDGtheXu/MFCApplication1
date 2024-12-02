@@ -315,7 +315,7 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
-		cube1->setYRot(cube1->getYRot() + 10);
+		cube1->setYRot(10);
 		proj.set(2, 2, 0);
 
 		cube1->render(getDraw(dc), &proj, &view);
@@ -327,14 +327,26 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 		dc.SetROP2(R2_NOT);
 		cube1->render(getDraw(dc), &proj, &view);
-		cube1->setXRot(cube1->getXRot() + 10);
+		
+		cube1->setXRot(10);
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
+	}
+	case 'Z':
+	{
+		if (cube1 == nullptr) return;
+
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+
+		cube1->setZRot(10);
 		cube1->render(getDraw(dc), &proj, &view);
 		break;
 	}
 	case 'F':
 	{
-		//getDraw(dc)->fillSolid(pointArr, RGB(255, 50, 50));
 		if (pointArr.empty()) break;
+		getDraw(dc)->drawLine_Mid(pointArr.at(0), pointArr.at(pointArr.size() - 1));
 		if (fillType == FillType::SOLID)
 			getDraw(dc)->fillSolid(pointArr, RGB(0, 255, 0));
 		else if (fillType == FillType::FILL_BITMAP)
@@ -489,40 +501,40 @@ void CMFCApplication2View::OnCreateCube()
 void CMFCApplication2View::OnProjType1()
 {
 	// TODO: 在此添加命令处理程序代码
-	proj = Matrix(4, 4);
-	proj.set(2, 2, 0);
+	projType = ProjectionType::OBLIQUE;
+	resetProj();
 }
 
 
 void CMFCApplication2View::OnProjType2()
 {
 	if (cube1 == nullptr) return;
-	// TODO: 在此添加命令处理程序代码
-	CClientDC dc(this);
-	dc.SetROP2(R2_NOT);
-	cube1->render(getDraw(dc), &proj, &view);
+	projType = ProjectionType::PERSPECTIVE;
 	resetProj();
-	cube1->render(getDraw(dc), &proj, &view);
-
 }
 
 void CMFCApplication2View::resetProj() {
+	proj = Matrix(4, 4);
+	CClientDC dc(this);
+	dc.SetROP2(R2_NOT);
+	cube1->render(getDraw(dc), &proj, &view);
 	float x0 = 0;
 	float y0 = 0;
 	float d = 150;
+	if (projType == ProjectionType::PERSPECTIVE) {
 
+		proj.set(2, 0, x0 / d);
+		proj.set(2, 1, y0 / d);
+		proj.set(2, 2, 0);
+		proj.set(2, 3, 1 / d);
 
-	proj.set(2,0,x0 / d);
-	proj.set(2,1,y0 / d);
-	proj.set(2, 2, 0);
-	proj.set(2, 3, 1 / d);
-
-
+	}else if (projType == ProjectionType::OBLIQUE) {
+		proj.set(2, 2, 0);
+	}
 	view.set(0, 0, d / (d - cube1->position.z));
 	view.set(1, 1, d / (d - cube1->position.z));
 
-
-
+	cube1->render(getDraw(dc), &proj, &view);
 }
 
 

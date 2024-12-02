@@ -120,7 +120,93 @@ public:
 		return mm;
 	}
 
-	Matrix(int row,int col):row(row),col(col){
+	Matrix operator()(int excludeRow, int excludeCol) const {
+		Matrix result(3, 3);
+		int newRow = 0;
+		for (int i = 0; i < 4; ++i) {
+			if (i == excludeRow) continue;
+			int newCol = 0;
+			for (int j = 0; j < 4; ++j) {
+				if (j == excludeCol) continue;
+				result.set(newRow, newCol++, this->get(i, j));
+			}
+			newRow++;
+		}
+		return result;
+	}
+
+	Matrix& operator=(const Matrix& other) {
+		if (this != &other) {
+			for (int i = 0; i < 4; ++i) {
+				for (int j = 0; j < 4; ++j) {
+					arr[i][j] = other.arr[i][j];
+				}
+			}
+		}
+		return *this;
+	}
+
+	// 计算行列式
+	double determinant() const {
+		return arr[0][0] * (arr[1][1] * arr[2][2] * arr[3][3] - arr[1][2] * arr[2][1] * arr[3][3] + arr[1][2] * arr[2][3] * arr[3][1] - arr[1][3] * arr[2][1] * arr[3][2] + arr[1][3] * arr[2][2] * arr[3][1])
+			- arr[0][1] * (arr[1][0] * arr[2][2] * arr[3][3] - arr[1][2] * arr[2][0] * arr[3][3] + arr[1][2] * arr[2][3] * arr[3][0] - arr[1][3] * arr[2][0] * arr[3][2] + arr[1][3] * arr[2][2] * arr[3][0])
+			+ arr[0][2] * (arr[1][0] * arr[2][1] * arr[3][3] - arr[1][1] * arr[2][0] * arr[3][3] + arr[1][1] * arr[2][3] * arr[3][0] - arr[1][3] * arr[2][0] * arr[3][1] + arr[1][3] * arr[2][1] * arr[3][0])
+			- arr[0][3] * (arr[1][0] * arr[2][1] * arr[3][2] - arr[1][1] * arr[2][0] * arr[3][2] + arr[1][1] * arr[2][2] * arr[3][0] - arr[1][2] * arr[2][0] * arr[3][1] + arr[1][2] * arr[2][1] * arr[3][0]);
+	}
+	// 获取子矩阵
+	Matrix subMatrix(int excludeRow, int excludeCol) const {
+		Matrix result(3, 3);
+		int newRow = 0;
+		for (int i = 0; i < 4; ++i) {
+			if (i == excludeRow) continue;
+			int newCol = 0;
+			for (int j = 0; j < 4; ++j) {
+				if (j == excludeCol) continue;
+				result.set(newRow, newCol++, this->get(i, j));
+			}
+			newRow++;
+		}
+		return result;
+	}
+	// 计算代数余子式
+	double cofactor(int row, int col) const {
+		int sign = ((row + col) % 2 == 0) ? 1 : -1;
+		Matrix subMatrix = subMatrix(row, col);
+		return sign * subMatrix.determinant();
+	}
+	// 计算伴随矩阵
+	Matrix adjugateMatrix() const {
+		Matrix cofactorMatrix;
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				cofactorMatrix.set(i, j, cofactor(i, j));
+			}
+		}
+		return cofactorMatrix.transpose();
+	}
+	// 矩阵转置
+	Matrix transpose() const {
+		Matrix result(4, 4);
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				result.set(i, j, this->get(j, i));
+			}
+		}
+		return result;
+	}
+
+	// 求逆矩阵
+	Matrix inverse() const {
+		double det = determinant();
+		if (std::abs(det) < 1e-9) {
+			throw std::runtime_error("矩阵不可逆");
+		}
+
+		Matrix adjugate = adjugateMatrix();
+		return adjugate * (1.0 / det);
+	}
+
+	Matrix(int row=4,int col=4):row(row),col(col){
 		arr[0][0] = arr[1][1] = arr[2][2] = arr[3][3] = 1;
 	}
 };
@@ -171,9 +257,8 @@ public:
 class Cube
 {
 private:
-	double yaw;
-	double pitch;
 
+	Matrix model;
 public:
 	string name;
 	Vec3 position;
@@ -183,16 +268,13 @@ public:
 
 
 	Cube(string name,Vec3 pos, float size=1):size(size),aabb(size),position(pos),anchor(size, size, size),name(name) {
-		yaw = 0;
-		pitch = 0;
+
 	}
 
-	double getYRot() { return yaw; }
-	double getXRot() { return pitch; }
-
 	void translate(float x,float y,float z) {this->position.add(x, y, z);}
-	void setYRot(float yaw) { this->yaw = yaw; }
-	void setXRot(float pitch) { this->pitch = pitch; }
+	void setYRot(float yaw) { this->model = *Matrix().rotateY(yaw).mul(this->model);}
+	void setXRot(float pitch) { this->model = *Matrix().rotateX(pitch).mul(this->model); }
+	void setZRot(float roll) { this->model = *Matrix().rotateZ(roll).mul(this->model); }
 	void render(MyDrawer* drawer,  Matrix* proj, Matrix* view);
 };
 

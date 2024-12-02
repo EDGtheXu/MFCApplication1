@@ -93,7 +93,6 @@ void MyDrawer::drawCircle_Bresenham(int x0, int y0, int r)
 
 	while (x >= y)
 	{
-		// 绘制八分之一的圆
 		setPixel(x0 + x, y0 + y);
 		setPixel(x0 + y, y0 + x);
 		setPixel(x0 - y, y0 + x);
