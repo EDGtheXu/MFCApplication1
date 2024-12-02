@@ -7,9 +7,7 @@
 
 
 
-void MyDrawer::setDC(HDC dc) {
-	this->dc = dc;
-}
+
 
 void swap(int* a, int* b) {
 	int t = *a;*a = *b;*b = t;
@@ -245,7 +243,7 @@ void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> set
 			}
 			if (set) {
 
-				SetPixel(dc, s, i, setcolorRecall(s, i));
+				SetPixel(hdc, s, i, setcolorRecall(s, i));
 			}
 			s++;
 		}
@@ -271,4 +269,107 @@ void MyDrawer::fillBmp(vector<CPoint> points, int IDB_BMP) {
 	int w = bmp.bmWidth;
 	int h = bmp.bmHeight;
 	fill(points, [&](int x, int y) {return dcTmp.GetPixel(x % w, y % h);});
+}
+
+int getPosEncode(int x,int y,int x0,int y0,int x3,int y3) {
+	int code = 0;
+	if (y > y3) code |= 8;
+	if (y < y0) code |= 4;
+	if (x > x3) code |= 2;
+	if (x < x0) code |= 1;
+	return code;
+}
+
+void MyDrawer::clip(vector<CPoint> points, int x0,int y0,int x3,int y3) {
+	int size = points.size();
+	if (size == 0) return;
+	if (x0 == y3 || y0 == y3) return;
+	if (x0 > x3) swap(x0, x3);
+	if (y0 > y3) swap(y0, y3);
+
+	CPoint* last = &points.at(points.size() - 1);
+	int x1 = last->x, y1 = last->y, x2, y2;
+	int code1 = getPosEncode(x1, y1, x0, y0, x3, y3);
+	int code2;
+	COLORREF incolor = RGB(0,255,0);
+	COLORREF outcolor = RGB(0, 0, 255);
+
+	for (int i = 0; i < size; i++) {
+		CPoint* now = &points.at(i);
+		x2 = now->x;
+		y2 = now->y;
+		code2 = getPosEncode(x2, y2, x0, y0, x3, y3);
+
+		int c1 = code1, c2 = code2, t1 = x1, t2 = y1, t3 = x2, t4 = y2;
+		while (1) {
+			if ((c1 & c2) != 0) {
+				color = outcolor;
+				drawLine_Mid(x1, y1, x2, y2);
+				break;
+			}
+
+			if (c1 == 0 && c2 == 0) {
+				color = incolor;
+				drawLine_Mid(x1, y1, x2, y2);
+
+				break;
+			}
+			int code = c1 ? c1 : c2;
+			
+			int xIntersect, yIntersect;
+			if (code & 1) { // left
+				xIntersect = x0;
+				yIntersect = t2 + (t4 - t2) * (x0 - t1) / (t3 - t1);
+			}
+			else if (code & 2) { // right
+				xIntersect = x3;
+				yIntersect = t2 + (t4 - t2) * (x3 - t1) / (t3 - t1);
+			}
+			else if (code & 4) { // bottom
+				yIntersect = y0;
+				xIntersect = t1 + (t3 - t1) * (y0 - t2) / (t4 - t2);
+			}
+			else { // top
+				yIntersect = y3;
+				xIntersect = t1 + (t3 - t1) * (y3 - t2) / (t4 - t2);
+			}
+
+			if (code == c1)
+			{
+				t1 = xIntersect;
+				t2 = yIntersect;
+				c1 = getPosEncode(t1, t2, x0, y0, x3, y3);
+			}
+			else
+			{
+				t3 = xIntersect;
+				t4 = yIntersect;
+				c2 = getPosEncode(t3, t4, x0, y0, x3, y3);
+			}
+
+			if (c1 == 0 && c2 == 0) {
+				
+				color = RGB(255,255,255);
+				drawLine_Mid(x1, y1, x2, y2);
+				
+				color = incolor;
+				drawLine_Mid(t1, t2, t3, t4);
+
+				color = outcolor;
+				drawLine_Mid(x1, y1, t1, t2);
+
+				color = outcolor;
+				drawLine_Mid(x2, y2, t3, t4);
+
+				break;
+			}
+		}
+
+		code1 = code2;
+		last = now;
+		x1 = x2;
+		y1 = y2;
+	}
+
+	color = RGB(0, 0, 0);
 }

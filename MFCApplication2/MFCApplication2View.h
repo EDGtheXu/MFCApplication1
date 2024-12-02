@@ -61,7 +61,7 @@ public:
 
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 
-	MyDrawer* getDraw(HDC dc);
+	MyDrawer* getDraw(CClientDC& dc);
 	MyDrawer* drawer = nullptr;
 
 	HCURSOR m_cursor;
@@ -73,6 +73,10 @@ public:
 	afx_msg void OnCreateCube();
 	afx_msg void OnProjType1();
 	afx_msg void OnProjType2();
+	afx_msg void OnClipCreate();
+
+	void CMFCApplication2View::resetProj();
+	afx_msg void OnClipLines();
 };
 
 #ifndef _DEBUG  // MFCApplication2View.cpp 中的调试版本

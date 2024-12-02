@@ -26,13 +26,15 @@ typedef struct AET {
 class MyDrawer
 {
 private:
-	HDC dc;
+	CClientDC* dc;
+	HDC hdc;
 	COLORREF color;
 
 
 public:
-	void setDC(HDC dc);
-	MyDrawer(HDC dc, COLORREF color) :dc(dc), color(color) {}
+	void setColor(COLORREF c) { color = c; }
+	void setDC(CClientDC* dc) { this->dc = dc;this->hdc = *dc; }
+	MyDrawer(CClientDC* dc, COLORREF color) :dc(dc), color(color) {}
 
 	void drawLine_DDA(int x1, int y1, int x2, int y2);
 	void drawLine_DDA(CPoint st, CPoint en) { drawLine_DDA(st.x, st.y, en.x, en.y); }
@@ -45,15 +47,19 @@ public:
 	void drawEllipse_Mid(int x0, int y0, int a, int b);
 
 
-	inline void setPixel(int x, int y) { SetPixel(dc, x, y, color); }
+	inline void setPixel(int x, int y) { SetPixel(hdc, x, y, color); }
 
 	void fillBmp(vector<CPoint> points, int IDB_BMP);
 	void fillSolid(vector<CPoint> points, COLORREF color);
 
+
+	void clip(vector<CPoint> points, int x0, int y0, int x3, int y3);
+	void clip(vector<CPoint> points, CPoint p1, CPoint p2) { clip(points,p1.x, p1.y, p2.x, p2.y); }
+
 private:
 	void fill(vector<CPoint> points, std::function<COLORREF(int, int)> setcolorRecall);
 
-	void solidColorFillRecall(int a, int b);
-	void fillBmpFillRecall(int a, int b);
+
+	
 };
 

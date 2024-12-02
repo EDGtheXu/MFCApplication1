@@ -43,22 +43,30 @@ BEGIN_MESSAGE_MAP(CMFCApplication2View, CView)
 	ON_COMMAND(ID_CREATE_CUBE, &CMFCApplication2View::OnCreateCube)
 	ON_COMMAND(ID_PROJ_TYPE1, &CMFCApplication2View::OnProjType1)
 	ON_COMMAND(ID_PROJ_TYPE2, &CMFCApplication2View::OnProjType2)
+	ON_COMMAND(ID_CLIP_CREATE, &CMFCApplication2View::OnClipCreate)
+	ON_COMMAND(ID_CLIP_LINES, &CMFCApplication2View::OnClipLines)
 END_MESSAGE_MAP()
 
 // CMFCApplication2View 构造/析构
 
 vector<CPoint> pointArr;
+vector<CPoint> clipPointArr;
 CPoint startPoint;
 CPoint endPoint;
+
+CPoint clip1, clip2;
 bool lpress = false;
 
 int distance(CPoint a, CPoint b) {
 	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
 
-Cube cube1("cube1",Vec3(100,100,0),40);
+
+Cube* cube1;
 Matrix proj(4, 4);
 Matrix view(4, 4);
+
+
 
 CMFCApplication2View::CMFCApplication2View() noexcept
 {
@@ -219,41 +227,106 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	case 'C':drawType = DrawType::CIRCLE; break;
 	case 'E':drawType = DrawType::ELLIPSE; break;
 	case 'R':drawType = DrawType::RECTANGLE; break;
-	case 'W':
+	case VK_DOWN:
 	{
+		if (cube1 == nullptr) return;
+
 		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.translate(0, 10, 0);
-		cube1.render(getDraw(dc), &proj, &view);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(0, 10, 0);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
 	}
-	case 'S':
+	case VK_UP:
 	{
+		if (cube1 == nullptr) return;
+
 		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.translate(0, -10, 0);
-		cube1.render(getDraw(dc), &proj, &view);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(0, -10, 0);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
 	}
-	case 'A':
+	case VK_LEFT:
 	{
+		if (cube1 == nullptr) return;
+
 		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.translate(-10, 0, 0);
-		cube1.render(getDraw(dc), &proj, &view);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(-10, 0, 0);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
 	}
-	case 'D':
+	case VK_RIGHT:
 	{
+		if (cube1 == nullptr) return;
+
 		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.translate(10, 0, 0);
-		cube1.render(getDraw(dc), &proj, &view);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(10, 0, 0);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
 		break;
 
+	}
+	case VK_NUMPAD0:
+	{
+		if (cube1 == nullptr) return;
+
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(0, 0, -10);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
+
+	}
+	case VK_NUMPAD1:
+	{
+		if (cube1 == nullptr) return;
+
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->translate(0, 0, 10);
+		resetProj();
+
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
+
+	}
+
+	case 'Y':
+	{
+		if (cube1 == nullptr) return;
+
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->setYRot(cube1->getYRot() + 10);
+		proj.set(2, 2, 0);
+
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
+	}
+	case 'X':
+	{
+		if (cube1 == nullptr) return;
+
+		dc.SetROP2(R2_NOT);
+		cube1->render(getDraw(dc), &proj, &view);
+		cube1->setXRot(cube1->getXRot() + 10);
+		cube1->render(getDraw(dc), &proj, &view);
+		break;
 	}
 	case 'F':
 	{
@@ -265,26 +338,7 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			getDraw(dc)->fillBmp(pointArr, IDB_MY_NUMBER);
 		break;
 	}
-	case 'Y':
-	{
-		
-		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.setYRot(cube1.getYRot() + 10);
-		proj.set(2, 2, 0);
 
-		cube1.render(getDraw(dc), &proj, &view);
-		break;
-	}
-	case 'X':
-	{
-
-		dc.SetROP2(R2_NOT);
-		cube1.render(getDraw(dc), &proj, &view);
-		cube1.setXRot(cube1.getXRot() + 10);
-		cube1.render(getDraw(dc), &proj, &view);
-		break;
-	}
 	default:
 
 		dc.SetROP2(R2_NOT);
@@ -392,9 +446,9 @@ void CMFCApplication2View::OnMouseMove(UINT nFlags, CPoint point)
 }
 
 
-MyDrawer* CMFCApplication2View::getDraw(HDC dc) {
-	if (drawer == nullptr) drawer = new MyDrawer(dc, RGB(0, 0, 0));
-	else drawer->setDC(dc);
+MyDrawer* CMFCApplication2View::getDraw(CClientDC& dc) {
+	if (drawer == nullptr) drawer = new MyDrawer(&dc, RGB(0, 0, 0));
+	else drawer->setDC(&dc);
 	return drawer;
 }
 
@@ -420,7 +474,11 @@ void CMFCApplication2View::OnFillBmp()
 void CMFCApplication2View::OnCreateCube()
 {
 	// TODO: 在此添加命令处理程序代码
-
+	cube1 = new Cube("cube1", Vec3(200, 200, 0), 40);
+	CClientDC dc(this);
+	cube1->setYRot(30);
+	cube1->setXRot(30);
+	cube1->render(getDraw(dc), &proj, &view);
 
 }
 
@@ -435,15 +493,79 @@ void CMFCApplication2View::OnProjType1()
 
 void CMFCApplication2View::OnProjType2()
 {
+	if (cube1 == nullptr) return;
 	// TODO: 在此添加命令处理程序代码
 	CClientDC dc(this);
 	dc.SetROP2(R2_NOT);
-	cube1.render(getDraw(dc), &proj, &view);
+	cube1->render(getDraw(dc), &proj, &view);
+	resetProj();
+	cube1->render(getDraw(dc), &proj, &view);
+
+}
+
+void CMFCApplication2View::resetProj() {
+	float x0 = 0;
+	float y0 = 0;
 	float d = 150;
-	//proj.set(2,0,cube1.position.x / d);
-	//proj.set(2,1,cube1.position.y / d);
+
+
+	proj.set(2,0,x0 / d);
+	proj.set(2,1,y0 / d);
 	proj.set(2, 2, 0);
 	proj.set(2, 3, 1 / d);
-	cube1.render(getDraw(dc), &proj, &view);
 
+
+	view.set(0, 0, d / (d - cube1->position.z));
+	view.set(1, 1, d / (d - cube1->position.z));
+
+
+
+}
+
+
+void CMFCApplication2View::OnClipCreate()
+{
+	// TODO: 在此添加命令处理程序代码
+	CClientDC dc(this);
+	clipPointArr.clear();
+	if (pointArr.size() == 4 && drawType == DrawType::LINE) {
+		for (int i = 0;i < 4;i++)
+			clipPointArr.push_back(pointArr.at(i));
+		MyDrawer& drawer = *getDraw(dc);
+		drawer.setColor(RGB(255, 0, 0));
+		drawer.drawLine_Mid(clipPointArr.at(0), clipPointArr.at(1));
+		drawer.drawLine_Mid(clipPointArr.at(1), clipPointArr.at(2));
+		drawer.drawLine_Mid(clipPointArr.at(2), clipPointArr.at(3));
+		drawer.drawLine_Mid(clipPointArr.at(3), clipPointArr.at(0));
+		drawer.setColor(RGB(0, 0, 0));
+	}
+	else if (pointArr.size() == 2 && drawType == DrawType::RECTANGLE) {
+
+		CPoint& p1 = pointArr.at(0);
+		CPoint& p2 = pointArr.at(1);
+		MyDrawer& drawer = *getDraw(dc);
+
+		drawer.setColor(RGB(255, 0, 0));
+		drawer.drawLine_Mid(p1.x,p1.y,p1.x,p2.y );
+		drawer.drawLine_Mid(p1.x,p2.y,p2.x,p2.y);
+		drawer.drawLine_Mid(p2.x,p2.y,p2.x,p1.y);
+		drawer.drawLine_Mid(p2.x,p1.y,p1.x,p1.y);
+		drawer.setColor(RGB(0, 0, 0));
+
+		clip1 = p1;
+		clip2 = p2;
+
+	}
+
+}
+
+
+void CMFCApplication2View::OnClipLines()
+{
+	// TODO: 在此添加命令处理程序代码
+	CClientDC dc(this);
+	MyDrawer& drawer = *getDraw(dc);
+
+
+	drawer.clip(pointArr, clip1,clip2);
 }
