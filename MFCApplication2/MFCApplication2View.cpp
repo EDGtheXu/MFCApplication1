@@ -331,7 +331,7 @@ void CMFCApplication2View::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	default:
 
 		dc.SetROP2(R2_NOT);
-		if (drawType == DrawType::LINE) {
+		if (drawType == DrawType::LINE || drawType == DrawType::CURVE) {
 			getDraw(dc)->drawLine_DDA(startPoint, endPoint);
 		}
 		else if (drawType == DrawType::ELLIPSE) {
