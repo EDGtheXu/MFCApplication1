@@ -172,6 +172,7 @@ void bubbleSort(AET* head, int n) {
 		if (!flag) break;
 	}
 }
+
 AET* sortList(AET* head) {
 	auto p = head;
 	int n = 0; // 记录节点个数
@@ -184,9 +185,9 @@ AET* sortList(AET* head) {
 }
 
 void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> setcolorRecall) {
-
 	int _ymin = INT_MAX;
 	int _ymax = INT_MIN;
+
 	// 建立ET表
 	int count = points.size();
 	unordered_map<int, ET*> bucket = unordered_map<int, ET*>();
@@ -218,7 +219,6 @@ void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> set
 	}
 
 	// 扫描
-
 	AET* aet = nullptr;
 	for (int i = _ymin;i <= _ymax;i++) {
 		AET* rear = aet;
@@ -226,7 +226,7 @@ void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> set
 		if (bucket.find(i) != bucket.end())
 			head = bucket.at(i);
 
-
+		// ET插入到AET
 		while (head) {
 			if (aet == nullptr) {
 				aet = new AET(head->ymax, head->xmin, head->m, nullptr);
@@ -238,22 +238,44 @@ void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> set
 			}
 			head = head->next;
 		}
+
 		//排序
 		aet = sortList(aet);
+
 		//更新AET
 		rear = aet;
 		AET* pre = nullptr;
 		while (rear) {
-			if (rear->ymax < i) {
+			if (rear->ymax <= i) {
 				rear = rear->next;
-				if (pre != nullptr) pre->next = rear;
-				else aet = rear;
+				if (pre != nullptr) {
+					delete pre->next;// 清理aet
+					pre->next = rear;
+				}
+				else {
+					delete aet;// 清理aet头
+					aet = rear;
+				}
 				continue;
 			}
 			pre = rear;
 			rear = rear->next;
 		}
 
+		// 已经结束，清理内存
+		if (aet == nullptr) {
+			for (auto& pair : bucket) {
+				ET* head = pair.second;
+				while (head) {
+					ET* temp = head;
+					head = head->next;
+					delete temp;
+				}
+			}
+			return;
+		}
+
+		// 更新AET横坐标
 		rear = aet;
 		while (rear) {
 			rear->x = rear->x + rear->m;
@@ -263,6 +285,7 @@ void MyDrawer::fill(vector<CPoint> points, std::function<COLORREF(int, int)> set
 		// 点亮
 		bool set = false;
 		rear = aet;
+		
 		float s = aet->x - 1;
 		while (rear) {
 			if (s > rear->x) {
